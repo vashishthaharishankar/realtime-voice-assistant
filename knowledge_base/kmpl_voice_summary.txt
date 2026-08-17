@@ -1,0 +1,41 @@
+# Kotak Mahindra Prime — Voice Assistant Knowledge Summary
+
+Kotak Mahindra Prime Limited (KMPL) is a subsidiary of Kotak Mahindra Bank and specializes in automobile finance in India.
+
+## Products
+- New Car Finance: funding up to 100% for eligible models, tenure 12–84 months.
+- Used Car Finance: up to 90% funding, segments include pre-approved, preferred, and salary-linked options.
+- Car Loan Takeover / Refinance: transfer existing loan; top-up possible based on track record.
+- Cash Against Car: loan against lien-free owned vehicle with KMPL marking lien.
+
+## New Car Schemes
+- Margin Money: up to 100% invoice funding for select models.
+- Step Up: EMIs increase periodically for customers expecting income growth.
+- Balloon / Low EMI: 10–25% paid as final EMI.
+- Advance EMI: pay initial EMIs upfront to reduce later burden.
+
+## Application Channels
+- Website: primeloans.kotak.com
+- SMS: Text APPLY to 5676788
+- Track application via prospect number or registered mobile on the website.
+
+## Processing
+- New car: typically within 48 hours after complete documentation.
+- Used car: up to 72 hours after documentation.
+
+## Eligibility (illustrative)
+- Salaried: generally 21+ years, income and age-at-maturity checks apply.
+- Self-employed: business vintage and financials required.
+- Credit decision solely at discretion of KMPL; RBI guidelines apply.
+
+## Charges
+- Processing fee up to ~3% of loan amount (illustrative).
+- RTO, NACH, stamp duty, prepayment charges may apply as per policy.
+
+## Grievance
+Customers may raise grievances through KMPL website grievance redressal channels.
+For branch locations, refer to the official branch list document in knowledge base.
+
+## Important
+Never promise approval, rates, or EMI without system verification.
+KMPL serves car finance only—not personal loans, credit cards, or bike loans.

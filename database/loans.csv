@@ -1,0 +1,7 @@
+loan_id,customer_id,loan_account_number,prospect_number,product_type,vehicle_model,loan_amount_inr,outstanding_balance_inr,emi_inr,interest_rate_percent,tenure_months,disbursement_date,status,next_emi_date,principal_outstanding_inr
+LN001,CUST001,KMPL-AC-2024-10001,KMPL1001,new_car,Hyundai Creta SX (O) 2024,1250000,892450.00,26850.00,9.75,60,2024-06-10,active,2026-09-05,845200.00
+LN002,CUST002,KMPL-AC-2024-10045,KMPL1002,used_car,Maruti Swift VXI 2021,450000,312800.00,9850.00,11.25,48,2024-08-18,active,2026-09-05,298500.00
+LN003,CUST003,KMPL-AC-2023-08892,KMPL1003,refinance,Tata Nexon XZ+ 2022,380000,245600.00,8750.00,10.50,48,2023-12-01,active,2026-09-05,232100.00
+LN004,CUST004,KMPL-AC-2025-10210,KMPL1004,new_car,Honda City ZX CVT 2025,1480000,1425600.00,31200.00,9.50,60,2025-02-14,active,2026-09-05,1398000.00
+LN005,CUST005,KMPL-AC-2024-10112,KMPL1005,cash_against_car,Toyota Innova Crysta 2020,650000,478900.00,14200.00,10.85,48,2024-09-05,active,2026-09-05,462300.00
+LN006,CUST006,KMPL-AC-2024-09987,KMPL1006,new_car,Skoda Kushaq Style 2024,1180000,756200.00,25400.00,9.90,60,2024-04-22,active,2026-09-05,718400.00

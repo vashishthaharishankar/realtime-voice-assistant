@@ -3,738 +3,93 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kotak Mahindra Prime — Voice Assist</title>
+  <title>Kotak Assist — Customer Support</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --ink: #0f1c2e;
-      --navy: #1a3a5c;
-      --red: #ed1c24;
-      --red-deep: #b81018;
-      --cream: #f7f4ef;
-      --mist: #e8eef5;
-      --line: rgba(15, 28, 46, 0.12);
-      --ok: #1f7a4c;
-      --warn: #9a6b00;
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: "DM Sans", sans-serif;
-      color: var(--ink);
-      background:
-        radial-gradient(1200px 600px at 10% -10%, rgba(237, 28, 36, 0.12), transparent 55%),
-        radial-gradient(900px 500px at 100% 0%, rgba(26, 58, 92, 0.16), transparent 50%),
-        linear-gradient(180deg, #fbfaf8 0%, var(--mist) 100%);
-    }
-
-    .shell {
-      max-width: 920px;
-      margin: 0 auto;
-      padding: 2rem 1.25rem 3rem;
-    }
-
-    header {
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      gap: 1rem;
-      margin-bottom: 1.75rem;
-    }
-
-    .brand {
-      display: flex;
-      flex-direction: column;
-      gap: 0.35rem;
-    }
-
-    .brand-mark {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.55rem;
-      font-weight: 700;
-      letter-spacing: 0.02em;
-      color: var(--navy);
-      font-size: 0.95rem;
-    }
-
-    .brand-mark span.dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 2px;
-      background: var(--red);
-      display: inline-block;
-    }
-
-    h1 {
-      margin: 0;
-      font-family: "Instrument Serif", Georgia, serif;
-      font-weight: 400;
-      font-size: clamp(2rem, 5vw, 3rem);
-      line-height: 1.05;
-      color: var(--ink);
-    }
-
-    h1 em {
-      font-style: italic;
-      color: var(--red-deep);
-    }
-
-    .subtitle {
-      margin: 0.55rem 0 0;
-      max-width: 36rem;
-      color: rgba(15, 28, 46, 0.72);
-      font-size: 0.98rem;
-      line-height: 1.45;
-    }
-
-    .status-pill {
-      align-self: center;
-      padding: 0.45rem 0.85rem;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.7);
-      font-size: 0.82rem;
-      font-weight: 600;
-      white-space: nowrap;
-    }
-
-    .status-pill.live { color: var(--ok); border-color: rgba(31, 122, 76, 0.35); }
-    .status-pill.idle { color: rgba(15, 28, 46, 0.55); }
-    .status-pill.error { color: var(--red-deep); }
-
-    .stage {
-      display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
-      gap: 1rem;
-    }
-
-    @media (max-width: 800px) {
-      .stage { grid-template-columns: 1fr; }
-      header { flex-direction: column; align-items: flex-start; }
-    }
-
-    .panel {
-      background: rgba(255, 255, 255, 0.78);
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      padding: 1.25rem;
-      backdrop-filter: blur(8px);
-    }
-
-    .mic-wrap {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 320px;
-      gap: 1.25rem;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .orb {
-      width: 148px;
-      height: 148px;
-      border-radius: 50%;
-      background:
-        radial-gradient(circle at 35% 30%, #ff6b6b, var(--red) 45%, var(--navy) 100%);
-      box-shadow: 0 18px 50px rgba(237, 28, 36, 0.28);
-      position: relative;
-      transition: transform 0.25s ease;
-    }
-
-    .orb::after {
-      content: "";
-      position: absolute;
-      inset: -14px;
-      border-radius: 50%;
-      border: 1px solid rgba(237, 28, 36, 0.28);
-      animation: pulse 2.2s ease-out infinite;
-      opacity: 0;
-    }
-
-    .orb.listening::after,
-    .orb.speaking::after { opacity: 1; }
-
-    .orb.speaking {
-      transform: scale(1.04);
-      box-shadow: 0 22px 60px rgba(26, 58, 92, 0.35);
-    }
-
-    @keyframes pulse {
-      0% { transform: scale(0.92); opacity: 0.55; }
-      100% { transform: scale(1.18); opacity: 0; }
-    }
-
-    .hint {
-      color: rgba(15, 28, 46, 0.65);
-      font-size: 0.92rem;
-      max-width: 26rem;
-      line-height: 1.4;
-    }
-
-    .controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.65rem;
-      justify-content: center;
-    }
-
-    button {
-      font-family: inherit;
-      font-weight: 600;
-      font-size: 0.95rem;
-      border: none;
-      border-radius: 999px;
-      padding: 0.8rem 1.35rem;
-      cursor: pointer;
-      transition: transform 0.15s ease, opacity 0.15s ease, background 0.15s ease;
-    }
-
-    button:disabled {
-      opacity: 0.45;
-      cursor: not-allowed;
-    }
-
-    button.primary {
-      background: var(--red);
-      color: white;
-    }
-
-    button.primary:hover:not(:disabled) {
-      background: var(--red-deep);
-      transform: translateY(-1px);
-    }
-
-    button.ghost {
-      background: transparent;
-      color: var(--navy);
-      border: 1px solid var(--line);
-    }
-
-    button.ghost:hover:not(:disabled) {
-      background: rgba(26, 58, 92, 0.06);
-    }
-
-    .meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      justify-content: center;
-      font-size: 0.78rem;
-      color: rgba(15, 28, 46, 0.55);
-    }
-
-    .meta code {
-      background: rgba(15, 28, 46, 0.06);
-      padding: 0.15rem 0.4rem;
-      border-radius: 6px;
-      font-size: 0.76rem;
-    }
-
-    h2 {
-      margin: 0 0 0.75rem;
-      font-size: 0.9rem;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: rgba(15, 28, 46, 0.55);
-    }
-
-    .transcript {
-      height: 360px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 0.7rem;
-      padding-right: 0.25rem;
-    }
-
-    .bubble {
-      padding: 0.7rem 0.85rem;
-      border-radius: 12px;
-      font-size: 0.92rem;
-      line-height: 1.4;
-      max-width: 95%;
-      white-space: pre-wrap;
-    }
-
-    .bubble.user {
-      align-self: flex-end;
-      background: rgba(26, 58, 92, 0.1);
-      border: 1px solid rgba(26, 58, 92, 0.12);
-    }
-
-    .bubble.assistant {
-      align-self: flex-start;
-      background: rgba(237, 28, 36, 0.08);
-      border: 1px solid rgba(237, 28, 36, 0.12);
-    }
-
-    .bubble.tool {
-      align-self: stretch;
-      background: #0f1c2e;
-      color: #d7e4f5;
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: 0.78rem;
-    }
-
-    .bubble .who {
-      display: block;
-      font-size: 0.7rem;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      opacity: 0.65;
-      margin-bottom: 0.25rem;
-    }
-
-    .footer-note {
-      margin-top: 1rem;
-      font-size: 0.78rem;
-      color: rgba(15, 28, 46, 0.5);
-      line-height: 1.45;
-    }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/app.css" />
 </head>
 <body>
-  <div class="shell">
-    <header>
-      <div class="brand">
-        <div class="brand-mark"><span class="dot"></span> Kotak Mahindra Prime</div>
-        <h1 id="agentTitle">Swati <em>Voice</em></h1>
-        <p class="subtitle">
-          Speak with a realtime loan specialist for new &amp; used car finance,
-          refinance, eligibility, documents, EMI estimates, and application tracking.
-        </p>
+  <div id="loginView" class="login-shell">
+    <div class="login-card">
+      <img
+        class="brand-logo"
+        src="https://static.brandirectory.com/logos/KOTB001_kotak_mahindra_group_logo_svg_png.png"
+        alt="Kotak Mahindra"
+      />
+      <p class="product-name">Kotak Assist</p>
+      <h2>Sign in</h2>
+      <p class="sub">Use your registered email or mobile number to connect with Kotak customer support.</p>
+      <form id="loginForm">
+        <div class="field">
+          <label for="loginInput">Email or mobile</label>
+          <input id="loginInput" type="text" placeholder="e.g. priya.nair@email.com or +919930869699" autocomplete="username" required />
+        </div>
+        <div class="field">
+          <label for="passwordInput">Password</label>
+          <input id="passwordInput" type="password" placeholder="Your portal password" autocomplete="current-password" required />
+        </div>
+        <button type="submit" class="btn btn-primary" id="loginBtn">Continue</button>
+        <p id="loginError" class="login-error hidden"></p>
+      </form>
+      <div class="login-hint">
+        <strong>Demo accounts</strong> (password: <code>Kmpl@2024</code>)<br />
+        Priya: <code>priya.nair@email.com</code> or <code>+919930869699</code><br />
+        Rahul: <code>rahul.sharma@email.com</code> · Amit: <code>amit.patel@email.com</code>
       </div>
-      <div id="statusPill" class="status-pill idle">Idle</div>
+    </div>
+  </div>
+
+  <div id="appView" class="app-shell hidden">
+    <header class="topbar">
+      <div class="brand">
+        <img
+          class="brand-logo-bar"
+          src="https://static.brandirectory.com/logos/KOTB001_kotak_mahindra_group_logo_svg_png.png"
+          alt="Kotak Mahindra"
+        />
+        <span class="brand-divider"></span>
+        <div>
+          <h1>Kotak Assist</h1>
+          <p>Customer Support</p>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <div class="user-chip">
+          <span>Logged in as <strong id="userName">—</strong></span>
+        </div>
+        <div id="statusPill" class="status-pill">Idle</div>
+        <button type="button" class="btn btn-ghost" id="logoutBtn">Logout</button>
+      </div>
     </header>
 
     <div class="stage">
-      <section class="panel mic-wrap">
-        <div id="orb" class="orb" aria-hidden="true"></div>
+      <section class="panel voice-panel">
+        <div id="orb" class="voice-viz" aria-hidden="true">
+          <canvas id="voiceCanvas"></canvas>
+          <img
+            class="viz-core"
+            src="https://assets1.cleartax-cdn.com/clearsave/images/1599738228_kotak_mf_v4.png"
+            alt=""
+          />
+        </div>
         <p id="hint" class="hint">
-          Click Start Call, allow microphone access, then talk naturally.
-          Audio uses WebRTC for near zero-latency speech-to-speech.
+          Click Start Call and allow microphone access. Speak naturally — support will respond when you finish.
         </p>
         <div class="controls">
-          <button id="startBtn" class="primary" type="button">Start Call</button>
-          <button id="stopBtn" class="ghost" type="button" disabled>End Call</button>
-          <button id="muteBtn" class="ghost" type="button" disabled>Mute Mic</button>
-        </div>
-        <div class="meta">
-          <span>Model <code>gpt-realtime-2.1-mini</code></span>
-          <span>Transport <code>WebRTC + DataChannel</code></span>
-          <span>Tools <code>LangGraph</code></span>
+          <button id="startBtn" class="btn btn-primary" type="button">Start Call</button>
+          <button id="stopBtn" class="btn btn-ghost" type="button" disabled>End Call</button>
+          <button id="muteBtn" class="btn btn-ghost" type="button" disabled>Mute Mic</button>
         </div>
       </section>
 
-      <section class="panel">
-        <h2>Live transcript &amp; tools</h2>
+      <section class="panel transcript-panel">
+        <h2>Conversation</h2>
         <div id="transcript" class="transcript"></div>
       </section>
     </div>
-
-    <p class="footer-note">
-      Demo voice agent for Kotak Mahindra Prime Limited car finance. Loan offers,
-      rates, and approvals are illustrative / at sole discretion of KMPL. Not an
-      official Kotak product.
-    </p>
   </div>
 
-  <script>
-    const startBtn = document.getElementById("startBtn");
-    const stopBtn = document.getElementById("stopBtn");
-    const muteBtn = document.getElementById("muteBtn");
-    const statusPill = document.getElementById("statusPill");
-    const hint = document.getElementById("hint");
-    const orb = document.getElementById("orb");
-    const transcriptEl = document.getElementById("transcript");
-    const agentTitle = document.getElementById("agentTitle");
-
-    let agentName = "Swati";
-    let pc = null;
-    let dc = null;
-    let localStream = null;
-    let audioEl = null;
-    let eventSocket = null;
-    let muted = false;
-    let activeResponseId = null;
-    let greetingSent = false;
-    const seenEventIds = new Set();
-    const handledCallIds = new Set();
-    const pendingToolCalls = new Map();
-
-    function toolState(responseId) {
-      if (!pendingToolCalls.has(responseId)) {
-        pendingToolCalls.set(responseId, {
-          expected: new Set(),
-          completed: new Set(),
-          knownAll: false,
-          responseRequested: false,
-        });
-      }
-      return pendingToolCalls.get(responseId);
-    }
-
-    function maybeContinueAfterTools(responseId) {
-      const state = pendingToolCalls.get(responseId);
-      if (!state || state.responseRequested || !state.knownAll) return;
-      if (state.expected.size === 0) return;
-      if (![...state.expected].every((id) => state.completed.has(id))) return;
-      if (!dc || dc.readyState !== "open") return;
-      state.responseRequested = true;
-      dc.send(JSON.stringify({ type: "response.create" }));
-    }
-
-    function applyAgentName(name) {
-      if (!name) return;
-      agentName = name;
-      if (agentTitle) {
-        agentTitle.innerHTML = `${escapeHtml(agentName)} <em>Voice</em>`;
-      }
-    }
-
-    async function loadAgentName() {
-      try {
-        const res = await fetch("/health");
-        if (!res.ok) return;
-        const data = await res.json();
-        applyAgentName(data.agent_name);
-      } catch (_) { /* keep default Swati */ }
-    }
-
-    function setStatus(text, kind = "idle") {
-      statusPill.textContent = text;
-      statusPill.className = `status-pill ${kind}`;
-    }
-
-    function addBubble(role, text) {
-      if (!text || !String(text).trim()) return;
-      const div = document.createElement("div");
-      div.className = `bubble ${role}`;
-      const who =
-        role === "user" ? "You" :
-        role === "assistant" ? agentName : "Tool";
-      div.innerHTML = `<span class="who">${who}</span>${escapeHtml(String(text))}`;
-      transcriptEl.appendChild(div);
-      transcriptEl.scrollTop = transcriptEl.scrollHeight;
-    }
-
-    function escapeHtml(s) {
-      return s
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;");
-    }
-
-    function connectEventSocket() {
-      const proto = location.protocol === "https:" ? "wss" : "ws";
-      eventSocket = new WebSocket(`${proto}://${location.host}/ws/events`);
-      eventSocket.addEventListener("open", () => {
-        eventSocket.send(JSON.stringify({ type: "client_status", status: "ui_ready" }));
-      });
-      eventSocket.addEventListener("message", (ev) => {
-        try {
-          const msg = JSON.parse(ev.data);
-          if (msg.type === "ready") {
-            console.log("Event socket ready", msg);
-          }
-        } catch (_) { /* ignore */ }
-      });
-    }
-
-    async function executeTool(name, args) {
-      const res = await fetch("/api/tools/execute", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, arguments: args || {} }),
-      });
-      if (!res.ok) {
-        const err = await res.text();
-        throw new Error(err || `Tool failed: ${name}`);
-      }
-      const data = await res.json();
-      return data.output;
-    }
-
-    async function handleFunctionCall(item, responseId) {
-      if (!item?.call_id || handledCallIds.has(item.call_id)) return;
-      handledCallIds.add(item.call_id);
-
-      const name = item.name;
-      let args = {};
-      try {
-        args = item.arguments ? JSON.parse(item.arguments) : {};
-      } catch (e) {
-        args = {};
-      }
-
-      const rid = responseId || activeResponseId || "unknown";
-      const state = toolState(rid);
-      state.expected.add(item.call_id);
-
-      addBubble("tool", `${name}(${JSON.stringify(args)})`);
-      eventSocket?.readyState === WebSocket.OPEN &&
-        eventSocket.send(JSON.stringify({ type: "tool_log", name, args }));
-
-      let output;
-      try {
-        output = await executeTool(name, args);
-        addBubble("tool", `→ ${output}`);
-      } catch (err) {
-        output = JSON.stringify({ error: String(err.message || err) });
-        addBubble("tool", `× ${output}`);
-      }
-
-      if (dc && dc.readyState === "open") {
-        dc.send(JSON.stringify({
-          type: "conversation.item.create",
-          item: {
-            type: "function_call_output",
-            call_id: item.call_id,
-            output: typeof output === "string" ? output : JSON.stringify(output),
-          },
-        }));
-      }
-
-      state.completed.add(item.call_id);
-      maybeContinueAfterTools(rid);
-    }
-
-    function sendOpeningGreeting() {
-      if (greetingSent || !dc || dc.readyState !== "open") return;
-      greetingSent = true;
-      dc.send(JSON.stringify({
-        type: "response.create",
-        response: {
-          instructions: "Say exactly this once, then stop and wait: Hello, how can I help you today?",
-        },
-      }));
-    }
-
-    function onServerEvent(event) {
-      const type = event.type;
-      if (event.event_id) {
-        if (seenEventIds.has(event.event_id)) return;
-        seenEventIds.add(event.event_id);
-      }
-
-      if (type === "session.created" || type === "session.updated") {
-        setStatus("Connected", "live");
-        orb.classList.add("listening");
-        hint.textContent = "Connected. Start speaking — semantic VAD detects when you finish.";
-        sendOpeningGreeting();
-      }
-
-      if (type === "input_audio_buffer.speech_started") {
-        setStatus("Listening…", "live");
-        orb.classList.add("listening");
-        orb.classList.remove("speaking");
-      }
-
-      if (type === "input_audio_buffer.speech_stopped") {
-        setStatus("Thinking…", "live");
-      }
-
-      if (type === "response.created") {
-        activeResponseId = event.response?.id || null;
-        greetingSent = true;
-      }
-
-      if (type === "output_audio_buffer.started" || type === "response.output_audio.delta") {
-        setStatus("Speaking…", "live");
-        orb.classList.add("speaking");
-        orb.classList.remove("listening");
-      }
-
-      if (type === "output_audio_buffer.stopped" || type === "response.done") {
-        orb.classList.remove("speaking");
-        orb.classList.add("listening");
-        setStatus("Listening…", "live");
-      }
-
-      // User transcript
-      if (type === "conversation.item.input_audio_transcription.completed") {
-        addBubble("user", event.transcript || "");
-      }
-
-      if (type === "response.output_audio_transcript.delta") {
-        const responseId = event.response_id || activeResponseId || "current";
-        let bubble = transcriptEl.querySelector(`.bubble.assistant[data-response-id="${responseId}"]`);
-        if (!bubble) {
-          bubble = document.createElement("div");
-          bubble.className = "bubble assistant";
-          bubble.dataset.responseId = responseId;
-          bubble.dataset.streaming = "1";
-          bubble.innerHTML = `<span class="who">${escapeHtml(agentName)}</span>`;
-          transcriptEl.appendChild(bubble);
-        }
-        bubble.appendChild(document.createTextNode(event.delta || ""));
-        transcriptEl.scrollTop = transcriptEl.scrollHeight;
-      }
-
-      if (type === "response.output_audio_transcript.done") {
-        const responseId = event.response_id || activeResponseId;
-        const bubble = responseId
-          ? transcriptEl.querySelector(`.bubble.assistant[data-response-id="${responseId}"]`)
-          : transcriptEl.querySelector(".bubble.assistant:last-of-type");
-        if (bubble) bubble.dataset.streaming = "0";
-      }
-
-      if (type === "response.function_call_arguments.done") {
-        handleFunctionCall({
-          name: event.name,
-          arguments: event.arguments,
-          call_id: event.call_id,
-        }, event.response_id || activeResponseId);
-      }
-
-      if (type === "response.done" && event.response?.output) {
-        const rid = event.response.id || activeResponseId;
-        const calls = event.response.output.filter((item) => item.type === "function_call" && item.call_id);
-        if (calls.length) {
-          const state = toolState(rid);
-          for (const item of calls) {
-            state.expected.add(item.call_id);
-            handleFunctionCall(item, rid);
-          }
-          state.knownAll = true;
-          maybeContinueAfterTools(rid);
-        }
-      }
-
-      if (type === "error") {
-        console.error("Realtime error", event);
-        addBubble("tool", `Error: ${event.error?.message || JSON.stringify(event)}`);
-        setStatus("Error", "error");
-      }
-    }
-
-    async function startCall() {
-      startBtn.disabled = true;
-      setStatus("Connecting…", "idle");
-      hint.textContent = "Requesting microphone and opening WebRTC session…";
-
-      connectEventSocket();
-
-      audioEl = document.createElement("audio");
-      audioEl.autoplay = true;
-      document.body.appendChild(audioEl);
-
-      pc = new RTCPeerConnection();
-      pc.ontrack = (e) => {
-        audioEl.srcObject = e.streams[0];
-      };
-
-      localStream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-        },
-      });
-      for (const track of localStream.getTracks()) {
-        pc.addTrack(track, localStream);
-      }
-
-      dc = pc.createDataChannel("oai-events");
-      dc.addEventListener("open", sendOpeningGreeting);
-      dc.addEventListener("message", (e) => {
-        try {
-          const event = JSON.parse(e.data);
-          onServerEvent(event);
-        } catch (err) {
-          console.warn("Bad event", err);
-        }
-      });
-
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
-
-      const sdpResponse = await fetch("/session", {
-        method: "POST",
-        body: offer.sdp,
-        headers: { "Content-Type": "application/sdp" },
-      });
-
-      if (!sdpResponse.ok) {
-        const errText = await sdpResponse.text();
-        throw new Error(errText || "Failed to create realtime session");
-      }
-
-      const answerSdp = await sdpResponse.text();
-      await pc.setRemoteDescription({ type: "answer", sdp: answerSdp });
-
-      stopBtn.disabled = false;
-      muteBtn.disabled = false;
-      setStatus("Live", "live");
-      hint.textContent = "You are live. Ask about new car loans, used cars, EMI, eligibility, or say “track KMPL1001”.";
-      addBubble("tool", "WebRTC session established with gpt-realtime-2.1-mini");
-    }
-
-    async function stopCall() {
-      try {
-        dc?.close();
-      } catch (_) {}
-      try {
-        pc?.getSenders().forEach((s) => s.track && s.track.stop());
-        pc?.close();
-      } catch (_) {}
-      localStream?.getTracks().forEach((t) => t.stop());
-      if (audioEl) {
-        audioEl.srcObject = null;
-        audioEl.remove();
-        audioEl = null;
-      }
-      try { eventSocket?.close(); } catch (_) {}
-
-      pc = null;
-      dc = null;
-      localStream = null;
-      eventSocket = null;
-      greetingSent = false;
-      activeResponseId = null;
-      seenEventIds.clear();
-      handledCallIds.clear();
-      pendingToolCalls.clear();
-      muted = false;
-      muteBtn.textContent = "Mute Mic";
-      startBtn.disabled = false;
-      stopBtn.disabled = true;
-      muteBtn.disabled = true;
-      orb.classList.remove("listening", "speaking");
-      setStatus("Idle", "idle");
-      hint.textContent = "Call ended. Click Start Call to begin again.";
-    }
-
-    function toggleMute() {
-      if (!localStream) return;
-      muted = !muted;
-      localStream.getAudioTracks().forEach((t) => { t.enabled = !muted; });
-      muteBtn.textContent = muted ? "Unmute Mic" : "Mute Mic";
-      setStatus(muted ? "Muted" : "Listening…", "live");
-    }
-
-    startBtn.addEventListener("click", () => {
-      startCall().catch((err) => {
-        console.error(err);
-        addBubble("tool", `Failed to start: ${err.message || err}`);
-        setStatus("Error", "error");
-        startBtn.disabled = false;
-        stopCall();
-      });
-    });
-    stopBtn.addEventListener("click", stopCall);
-    muteBtn.addEventListener("click", toggleMute);
-    loadAgentName();
-  </script>
+  <script src="/static/js/app.js?v=3"></script>
 </body>
 </html>

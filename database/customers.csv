@@ -1,0 +1,7 @@
+customer_id,full_name,email,registered_mobile,password,aadhaar_last4,pin_code,city,state,customer_type,pan_masked,account_status,kyc_status,created_date
+CUST001,Harishankar Vashishtha,vashishthaharishankar@gmail.com,+919058583987,Hari@2026,8232,400059,Mumbai,Maharashtra,salaried,BZCPV1917P,active,verified,2024-03-15
+CUST002,Priya Nair,priya.nair@email.com,+919930869699,Kmpl@2024,7892,560034,Bengaluru,Karnataka,salaried,BNKPN5678K,active,verified,2024-05-22
+CUST003,Amit Patel,amit.patel@email.com,+919812345678,Kmpl@2024,3347,411001,Pune,Maharashtra,self_employed,CPKAP9012M,active,verified,2023-11-08
+CUST004,Neha Gupta,neha.gupta@email.com,+919900112233,Kmpl@2024,9018,110001,New Delhi,Delhi,salaried,DLNGU3456P,active,verified,2025-01-10
+CUST005,Vikram Reddy,vikram.reddy@email.com,+919887766554,Kmpl@2024,2156,500032,Hyderabad,Telangana,self_employed,HYKVR7890R,active,verified,2024-08-03
+CUST006,Ananya Iyer,ananya.iyer@email.com,+919765432109,Kmpl@2024,6783,600040,Chennai,Tamil Nadu,salaried,TNMAI2345S,active,verified,2024-02-28

@@ -272,7 +272,7 @@ def recommend_product(
     return _ok(suggestion)
 
 
-ALL_TOOLS = [
+_PUBLIC_TOOLS = [
     list_loan_products,
     get_product_details,
     get_scheme_details,
@@ -286,6 +286,14 @@ ALL_TOOLS = [
     recommend_product,
 ]
 
+
+def _all_tools() -> list:
+    from app.tools.customer_tools import CUSTOMER_TOOLS
+
+    return _PUBLIC_TOOLS + CUSTOMER_TOOLS
+
+
+ALL_TOOLS = _all_tools()
 TOOL_BY_NAME = {t.name: t for t in ALL_TOOLS}
 
 

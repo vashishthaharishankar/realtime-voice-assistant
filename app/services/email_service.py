@@ -1,0 +1,175 @@
+"""Send customer documents via SMTP with mock PDF attachments."""
+
+from __future__ import annotations
+
+import io
+import smtplib
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from typing import Any, Literal
+
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+
+from app.config import get_settings
+from app.services.csv_store import get_loans_for_customer, get_transactions_for_customer
+
+DocumentType = Literal[
+    "account_statement",
+    "interest_certificate",
+    "loan_certificate",
+    "noc_certificate",
+]
+
+
+def _build_pdf(title: str, lines: list[str]) -> bytes:
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+    y = height - 50
+    c.setFont("Helvetica-Bold", 14)
+    c.drawString(50, y, "Kotak Mahindra Prime Limited")
+    y -= 24
+    c.setFont("Helvetica-Bold", 12)
+    c.drawString(50, y, title)
+    y -= 30
+    c.setFont("Helvetica", 10)
+    for line in lines:
+        if y < 60:
+            c.showPage()
+            y = height - 50
+            c.setFont("Helvetica", 10)
+        c.drawString(50, y, line[:110])
+        y -= 16
+    c.setFont("Helvetica", 8)
+    c.drawString(50, 30, "This is a system-generated mock document for demo purposes only.")
+    c.save()
+    buffer.seek(0)
+    return buffer.read()
+
+
+def _document_content(
+    doc_type: DocumentType,
+    customer_name: str,
+    customer_id: str,
+    loan: dict[str, str] | None,
+) -> tuple[str, str, list[str]]:
+    loan = loan or {}
+    account = loan.get("loan_account_number", "N/A")
+    base = [
+        f"Customer: {customer_name}",
+        f"Customer ID: {customer_id}",
+        f"Loan Account: {account}",
+        f"Date: 17 August 2026",
+        "",
+    ]
+
+    if doc_type == "account_statement":
+        txns = get_transactions_for_customer(customer_id, limit=5)
+        lines = base + ["Account Statement (Summary)", ""]
+        if loan:
+            lines += [
+                f"Outstanding Balance: Rs. {loan.get('outstanding_balance_inr', '0')}",
+                f"EMI: Rs. {loan.get('emi_inr', '0')}",
+                f"Next EMI Date: {loan.get('next_emi_date', 'N/A')}",
+                "",
+                "Recent transactions:",
+            ]
+        for t in txns:
+            lines.append(
+                f"{t['txn_date']} | {t['description']} | Rs. {t['amount_inr']} | Bal Rs. {t['balance_after_inr']}"
+            )
+        return (
+            "Kotak Prime - Account Statement",
+            f"KMPL_Statement_{customer_id}.pdf",
+            lines,
+        )
+
+    if doc_type == "interest_certificate":
+        lines = base + [
+            "Interest Certificate FY 2025-26",
+            f"Interest Rate: {loan.get('interest_rate_percent', 'N/A')}%",
+            f"Principal Outstanding: Rs. {loan.get('principal_outstanding_inr', 'N/A')}",
+            "Interest paid is subject to actual records maintained by KMPL.",
+        ]
+        return (
+            "Kotak Prime - Interest Certificate",
+            f"KMPL_Interest_{customer_id}.pdf",
+            lines,
+        )
+
+    if doc_type == "loan_certificate":
+        lines = base + [
+            "Loan Certificate",
+            f"Product: {loan.get('product_type', 'N/A')}",
+            f"Vehicle: {loan.get('vehicle_model', 'N/A')}",
+            f"Loan Amount: Rs. {loan.get('loan_amount_inr', 'N/A')}",
+            f"Status: {loan.get('status', 'N/A')}",
+        ]
+        return (
+            "Kotak Prime - Loan Certificate",
+            f"KMPL_LoanCert_{customer_id}.pdf",
+            lines,
+        )
+
+    lines = base + [
+        "No Objection Certificate (NOC)",
+        "Subject to clearance of all dues and lien release procedures.",
+        f"Vehicle: {loan.get('vehicle_model', 'N/A')}",
+    ]
+    return (
+        "Kotak Prime - NOC Certificate",
+        f"KMPL_NOC_{customer_id}.pdf",
+        lines,
+    )
+
+
+def send_document_email(
+    customer_id: str,
+    customer_name: str,
+    to_email: str,
+    document_type: DocumentType,
+) -> dict[str, Any]:
+    settings = get_settings()
+    if not settings.smtp_user or not settings.smtp_password:
+        return {
+            "sent": False,
+            "error": "SMTP credentials not configured on server.",
+        }
+
+    loans = get_loans_for_customer(customer_id)
+    loan = loans[0] if loans else None
+    title, filename, lines = _document_content(document_type, customer_name, customer_id, loan)
+    pdf_bytes = _build_pdf(title, lines)
+
+    msg = MIMEMultipart()
+    msg["Subject"] = f"{title} - Kotak Mahindra Prime"
+    msg["From"] = settings.smtp_from or settings.smtp_user
+    msg["To"] = to_email
+    body = (
+        f"Dear {customer_name},\n\n"
+        f"Please find attached your requested document: {title}.\n\n"
+        "This is a demo/mock document generated by the Kotak Prime voice assistant.\n\n"
+        "Regards,\nKotak Mahindra Prime Limited\nprimeloans.kotak.com"
+    )
+    msg.attach(MIMEText(body, "plain"))
+    attachment = MIMEApplication(pdf_bytes, _subtype="pdf")
+    attachment.add_header("Content-Disposition", "attachment", filename=filename)
+    msg.attach(attachment)
+
+    try:
+        with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=30) as server:
+            server.starttls()
+            server.login(settings.smtp_user, settings.smtp_password)
+            server.send_message(msg)
+    except Exception as exc:  # noqa: BLE001
+        return {"sent": False, "error": str(exc)}
+
+    return {
+        "sent": True,
+        "to": to_email,
+        "document_type": document_type,
+        "filename": filename,
+        "message": f"Document emailed to {to_email}.",
+    }

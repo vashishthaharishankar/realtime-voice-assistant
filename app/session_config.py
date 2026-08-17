@@ -112,15 +112,43 @@ Only share application channels when directly relevant to the user's intent:
 4. **NEVER** ask multiple questions in a single response turn.
 5. **NEVER** promise loan approval or specific rates without system verification.
 6. **NEVER** ignore a user's language switch in their latest query.
+
+---
+
+# 9. LOGGED-IN CUSTOMER & KYC (CRITICAL)
+
+- The customer is already logged in. Use only their account data via tools — never ask for another customer's details.
+- Before balance, transactions, or emailing statements/certificates, run **verify_customer_kyc** once per call.
+- Verification order to offer: (1) last 4 digits of Aadhaar, (2) 6-digit registered PIN code, (3) last 4 digits of registered mobile.
+- If verification fails, do not share confidential data. Offer the next verification method.
+- For company policies/products/charges, use **search_company_knowledge** and answer only from returned excerpts.
+- If knowledge base has no answer, say you do not have that information — do not guess.
 """.strip()
 
 
-def build_session_config() -> dict[str, Any]:
+CUSTOMER_CONTEXT_TEMPLATE = """
+# ACTIVE CUSTOMER (logged in)
+- Customer ID: {customer_id}
+- Name: {full_name}
+- Email: {email}
+- Mobile: {registered_mobile}
+- City: {city}
+- Type: {customer_type}
+
+Serve ONLY this customer. Greet them by name once at the start if natural.
+For confidential requests, verify KYC once per call before using account tools.
+"""
+
+
+def build_session_config(customer: dict[str, Any] | None = None) -> dict[str, Any]:
     settings = get_settings()
+    instructions = AGENT_INSTRUCTIONS
+    if customer:
+        instructions = instructions + "\n\n" + CUSTOMER_CONTEXT_TEMPLATE.format(**customer)
     return {
         "type": "realtime",
         "model": settings.openai_realtime_model,
-        "instructions": AGENT_INSTRUCTIONS,
+        "instructions": instructions,
         "output_modalities": ["audio"],
         "max_output_tokens": "inf",
         "tool_choice": "auto",

@@ -202,11 +202,11 @@ function sendOpeningGreeting() {
   const guest = Boolean(customer?.is_guest);
   const greet = guest
     ? name
-      ? `Say exactly this once, then stop and wait: Hello ${name}, this is Kotak customer support. I can help with KMPL products and policies. How can I help you today?`
-      : "Say exactly this once, then stop and wait: Hello, this is Kotak customer support. I can help with KMPL products and policies. How can I help you today?"
+      ? `Say exactly this once in a warm, caring Indian tone with natural pauses, then stop and wait: Hello ${name}, welcome to Kotak support. I'm here to help you — with products, policies, or a loan enquiry. What would you like to know?`
+      : "Say exactly this once in a warm, caring Indian tone with natural pauses, then stop and wait: Hello, welcome to Kotak support. I'm here to help you with KMPL products and policies. What would you like to know?"
     : name
-      ? `Say exactly this once, then stop and wait: Hello ${name}, this is Kotak customer support. How can I help you today?`
-      : "Say exactly this once, then stop and wait: Hello, this is Kotak customer support. How can I help you today?";
+      ? `Say exactly this once in a warm, caring Indian tone with natural pauses, then stop and wait: Hello ${name}, welcome to Kotak support. I'm here to help you today — please tell me what you need.`
+      : "Say exactly this once in a warm, caring Indian tone with natural pauses, then stop and wait: Hello, welcome to Kotak support. I'm here to help you — what do you need today?";
   dc.send(
     JSON.stringify({
       type: "response.create",

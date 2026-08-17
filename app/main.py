@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field
 from app.agent.graph import run_tool
 from app.call_context import set_session_token
 from app.config import get_settings
-from app.services.auth import authenticate
+from app.services.auth import authenticate, authenticate_guest
 from app.services.call_session import (
     begin_voice_call,
     end_session,
@@ -25,6 +25,7 @@ from app.services.call_session import (
     session_customer_context,
 )
 from app.services.tickets import log_support_ticket
+from app.services.leads import update_guest_lead_from_session
 from app.session_config import AGENT_NAME, build_session_config
 from app.tools.kotak_tools import TOOL_BY_NAME, realtime_tool_schemas
 
@@ -52,6 +53,12 @@ class ToolExecuteRequest(BaseModel):
 class LoginRequest(BaseModel):
     login: str
     password: str
+
+
+class GuestLoginRequest(BaseModel):
+    full_name: str
+    email: str = ""
+    phone: str = ""
 
 
 class CallEndRequest(BaseModel):
@@ -89,6 +96,14 @@ async def login(body: LoginRequest) -> JSONResponse:
     return JSONResponse(result)
 
 
+@app.post("/api/guest")
+async def guest_login(body: GuestLoginRequest) -> JSONResponse:
+    result = authenticate_guest(body.full_name, body.email, body.phone)
+    if not result.get("success"):
+        raise HTTPException(status_code=400, detail=result.get("error", "Guest login failed"))
+    return JSONResponse(result)
+
+
 @app.post("/api/logout")
 async def logout(request: Request) -> JSONResponse:
     token = _token_from_request(request)
@@ -106,10 +121,15 @@ async def call_end(body: CallEndRequest) -> JSONResponse:
     for entry in body.transcript:
         session.add_transcript(entry.get("role", "unknown"), entry.get("text", ""))
 
-    ticket_id = log_support_ticket(session, resolved=body.resolved)
-    logger.info("Support ticket %s for customer %s", ticket_id, session.customer_id)
+    ticket_id = None
+    if session.is_guest:
+        update_guest_lead_from_session(session)
+        logger.info("Guest lead %s updated for %s", session.lead_id, session.customer_id)
+    else:
+        ticket_id = log_support_ticket(session, resolved=body.resolved)
+        logger.info("Support ticket %s for customer %s", ticket_id, session.customer_id)
     reset_call_state(session)
-    return JSONResponse({"ok": True, "ticket_id": ticket_id})
+    return JSONResponse({"ok": True, "ticket_id": ticket_id, "lead_id": session.lead_id or None})
 
 
 @app.get("/api/tools")
@@ -125,6 +145,18 @@ async def execute_tool(body: ToolExecuteRequest, request: Request) -> JSONRespon
 
     if body.name not in TOOL_BY_NAME:
         raise HTTPException(status_code=404, detail=f"Unknown tool: {body.name}")
+
+    session = get_session(token)
+    if session and session.is_guest:
+        from app.tools.customer_tools import ACCOUNT_TOOL_NAMES
+
+        if body.name in ACCOUNT_TOOL_NAMES:
+            return JSONResponse(
+                {
+                    "name": body.name,
+                    "output": '{"error":"guest_restricted","message":"Account data is not available for guest users."}',
+                }
+            )
 
     set_session_token(token)
     try:

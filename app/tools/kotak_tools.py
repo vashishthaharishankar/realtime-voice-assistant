@@ -297,10 +297,16 @@ ALL_TOOLS = _all_tools()
 TOOL_BY_NAME = {t.name: t for t in ALL_TOOLS}
 
 
-def realtime_tool_schemas() -> list[dict[str, Any]]:
+def realtime_tool_schemas(guest: bool = False) -> list[dict[str, Any]]:
     """Convert LangChain tools to OpenAI Realtime function schemas."""
+    from app.tools.customer_tools import ACCOUNT_TOOL_NAMES, GUEST_TOOL_NAMES
+
     schemas: list[dict[str, Any]] = []
     for tool_obj in ALL_TOOLS:
+        if guest and tool_obj.name in ACCOUNT_TOOL_NAMES:
+            continue
+        if not guest and tool_obj.name in GUEST_TOOL_NAMES - {"search_company_knowledge"}:
+            continue
         schema = tool_obj.args_schema.model_json_schema()
         properties = schema.get("properties", {})
         required = schema.get("required", [])

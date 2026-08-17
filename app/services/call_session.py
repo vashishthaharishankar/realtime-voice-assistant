@@ -17,6 +17,10 @@ class CallSession:
     customer_name: str
     customer_email: str
     customer_mobile: str
+    is_guest: bool = False
+    lead_id: str = ""
+    loan_lead_id: str = ""
+    city: str = ""
     kyc_verified: bool = False
     kyc_method: str = ""
     call_started_at: float = field(default_factory=time.time)
@@ -64,6 +68,21 @@ def create_session(customer_id: str) -> CallSession | None:
     return session
 
 
+def create_guest_session(full_name: str, email: str, phone: str) -> CallSession:
+    token = secrets.token_urlsafe(32)
+    guest_id = f"GUEST-{secrets.token_hex(4).upper()}"
+    session = CallSession(
+        token=token,
+        customer_id=guest_id,
+        customer_name=full_name.strip(),
+        customer_email=email.strip(),
+        customer_mobile=phone.strip(),
+        is_guest=True,
+    )
+    _sessions[token] = session
+    return session
+
+
 def get_session(token: str) -> CallSession | None:
     return _sessions.get(token)
 
@@ -98,9 +117,21 @@ def session_customer_context(token: str) -> dict[str, Any] | None:
     session = get_session(token)
     if not session:
         return None
+    if session.is_guest:
+        return {
+            "customer_id": session.customer_id,
+            "full_name": session.customer_name,
+            "email": session.customer_email,
+            "registered_mobile": session.customer_mobile,
+            "city": session.city,
+            "customer_type": "guest",
+            "is_guest": True,
+            "kyc_verified_this_call": False,
+        }
     customer = find_customer_by_id(session.customer_id)
     if not customer:
         return None
     profile = customer_public_profile(customer)
     profile["kyc_verified_this_call"] = session.kyc_verified
+    profile["is_guest"] = False
     return profile

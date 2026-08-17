@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Kotak Assist — Customer Support</title>
+  <link rel="icon" type="image/png" href="https://www.primeloans.kotak.com/corporate/images/favicon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet" />
@@ -11,33 +12,73 @@
 </head>
 <body>
   <div id="loginView" class="login-shell">
-    <div class="login-card">
+    <aside class="login-hero">
       <img
         class="brand-logo"
         src="https://static.brandirectory.com/logos/KOTB001_kotak_mahindra_group_logo_svg_png.png"
         alt="Kotak Mahindra"
       />
       <p class="product-name">Kotak Assist</p>
-      <h2>Sign in</h2>
-      <p class="sub">Use your registered email or mobile number to connect with Kotak customer support.</p>
-      <form id="loginForm">
-        <div class="field">
-          <label for="loginInput">Email or mobile</label>
-          <input id="loginInput" type="text" placeholder="e.g. priya.nair@email.com or +919930869699" autocomplete="username" required />
+      <h2>Customer support, on a live voice call.</h2>
+      <p class="hero-copy">Speak with Kotak Mahindra Prime support in seconds. Existing customers can access their account after verification. Guests can explore products and start a loan enquiry.</p>
+      <ul class="hero-points">
+        <li>Secure customer login</li>
+        <li>Guest product guidance</li>
+        <li>Loan enquiry captured for follow-up</li>
+      </ul>
+    </aside>
+
+    <main class="login-panel">
+      <div class="auth-stage">
+        <div class="auth-flip" id="authFlip">
+          <section class="auth-face auth-front">
+            <p class="col-kicker">Existing customer</p>
+            <h3>Sign in</h3>
+            <p class="sub">Use your registered email or mobile number.</p>
+            <form id="loginForm">
+              <div class="field">
+                <label for="loginInput">Email or mobile</label>
+                <input id="loginInput" type="text" placeholder="email or +91 mobile" autocomplete="username" required />
+              </div>
+              <div class="field">
+                <label for="passwordInput">Password</label>
+                <input id="passwordInput" type="password" placeholder="Portal password" autocomplete="current-password" required />
+              </div>
+              <button type="submit" class="btn btn-primary" id="loginBtn">Sign in</button>
+              <p class="auth-or">Not an existing customer? Continue as guest.</p>
+              <button type="button" class="btn btn-ghost guest-btn" id="showGuestBtn">Continue as guest</button>
+              <p id="loginError" class="login-error hidden"></p>
+            </form>
+          </section>
+
+          <section class="auth-face auth-back">
+            <p class="col-kicker">New visitor</p>
+            <h3>Continue as guest</h3>
+            <p class="sub">Share your name and a phone number or email. Account data stays locked.</p>
+            <form id="guestForm">
+              <div class="field">
+                <label for="guestName">Full name</label>
+                <input id="guestName" type="text" placeholder="Your name" autocomplete="name" required />
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="guestPhone">Phone</label>
+                  <input id="guestPhone" type="tel" placeholder="+91 mobile" autocomplete="tel" />
+                </div>
+                <div class="field">
+                  <label for="guestEmail">Email</label>
+                  <input id="guestEmail" type="email" placeholder="you@email.com" autocomplete="email" />
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary" id="guestBtn">Start as guest</button>
+              <p class="auth-or">Already a customer? Sign in instead.</p>
+              <button type="button" class="btn btn-ghost" id="showLoginBtn">Back to sign in</button>
+              <p id="guestError" class="login-error hidden"></p>
+            </form>
+          </section>
         </div>
-        <div class="field">
-          <label for="passwordInput">Password</label>
-          <input id="passwordInput" type="password" placeholder="Your portal password" autocomplete="current-password" required />
-        </div>
-        <button type="submit" class="btn btn-primary" id="loginBtn">Continue</button>
-        <p id="loginError" class="login-error hidden"></p>
-      </form>
-      <div class="login-hint">
-        <strong>Demo accounts</strong> (password: <code>Kmpl@2024</code>)<br />
-        Priya: <code>priya.nair@email.com</code> or <code>+919930869699</code><br />
-        Rahul: <code>rahul.sharma@email.com</code> · Amit: <code>amit.patel@email.com</code>
       </div>
-    </div>
+    </main>
   </div>
 
   <div id="appView" class="app-shell hidden">
@@ -57,6 +98,7 @@
       <div class="topbar-actions">
         <div class="user-chip">
           <span>Logged in as <strong id="userName">—</strong></span>
+          <span id="guestBadge" class="guest-badge hidden">Guest</span>
         </div>
         <div id="statusPill" class="status-pill">Idle</div>
         <button type="button" class="btn btn-ghost" id="logoutBtn">Logout</button>
@@ -90,6 +132,6 @@
     </div>
   </div>
 
-  <script src="/static/js/app.js?v=3"></script>
+  <script src="/static/js/app.js?v=5"></script>
 </body>
 </html>

@@ -13,6 +13,7 @@ from app.services.email_service import send_document_email
 from app.services.knowledge import search_knowledge
 from app.services.kyc import require_kyc, verify_kyc
 from app.services.csv_store import get_loans_for_customer, get_transactions_for_customer
+from app.services.leads import create_or_update_loan_lead, update_guest_lead
 
 
 def _ok(payload: Any) -> str:
@@ -29,6 +30,17 @@ def _session_or_error() -> tuple[Any, str | None]:
     return session, None
 
 
+def _guest_account_block(session: Any) -> str | None:
+    if getattr(session, "is_guest", False):
+        return _ok(
+            {
+                "error": "guest_restricted",
+                "message": "Guest users cannot access account, balance, or personal loan records. Share only KMPL products, policies, and eligibility from the knowledge base.",
+            }
+        )
+    return None
+
+
 @tool
 def verify_customer_kyc(
     verification_method: Literal["aadhaar_last4", "pin_code", "phone_last4"],
@@ -38,6 +50,9 @@ def verify_customer_kyc(
     session, err = _session_or_error()
     if err:
         return err
+    blocked = _guest_account_block(session)
+    if blocked:
+        return blocked
     session.add_request(f"kyc_attempt_{verification_method}")
     result = verify_kyc(session, verification_method, value)
     if result.get("verified"):
@@ -51,6 +66,9 @@ def get_my_account_summary() -> str:
     session, err = _session_or_error()
     if err:
         return err
+    blocked = _guest_account_block(session)
+    if blocked:
+        return blocked
     blocked = require_kyc(session)
     if blocked:
         return _ok(blocked)
@@ -84,6 +102,9 @@ def get_my_recent_transactions() -> str:
     session, err = _session_or_error()
     if err:
         return err
+    blocked = _guest_account_block(session)
+    if blocked:
+        return blocked
     blocked = require_kyc(session)
     if blocked:
         return _ok(blocked)
@@ -123,6 +144,9 @@ def send_my_document_email(
     session, err = _session_or_error()
     if err:
         return err
+    blocked = _guest_account_block(session)
+    if blocked:
+        return blocked
     blocked = require_kyc(session)
     if blocked:
         return _ok(blocked)
@@ -151,10 +175,108 @@ def search_company_knowledge(query: str) -> str:
     return _ok(search_knowledge(query))
 
 
+@tool
+def log_guest_interest(interested_in: str, question_or_need: str, notes: str = "") -> str:
+    """Save what a guest visitor asked about so a human agent can follow up. Use after they share an interest or question."""
+    session, err = _session_or_error()
+    if err:
+        return err
+    if not session.is_guest:
+        return _ok({"ok": True, "message": "Logged-in customers are not stored as guest leads."})
+    session.add_topic(interested_in[:80])
+    session.add_request(question_or_need[:120])
+    update_guest_lead(
+        session.lead_id,
+        interested_in=interested_in[:200],
+        follow_up_notes=notes or question_or_need,
+        status="interested",
+    )
+    return _ok({"ok": True, "lead_id": session.lead_id, "saved": interested_in})
+
+
+@tool
+def submit_loan_enquiry(
+    product_interest: str = "",
+    city: str = "",
+    employment_type: Literal["", "salaried", "self_employed"] = "",
+    monthly_income_inr: str = "",
+    vehicle_make_model: str = "",
+    loan_amount_inr: str = "",
+    tenure_months: str = "",
+    existing_car_owner: str = "",
+    notes: str = "",
+    phone: str = "",
+    email: str = "",
+) -> str:
+    """Save loan/product enquiry details for a guest. Call after each useful detail so a human can process the application later. Ask one missing field at a time."""
+    session, err = _session_or_error()
+    if err:
+        return err
+    if not session.is_guest:
+        return _ok({"error": "logged_in_customer", "message": "Use the customer account tools for logged-in users."})
+
+    if city:
+        session.city = city
+    details = {
+        "product_interest": product_interest,
+        "city": city or session.city,
+        "employment_type": employment_type,
+        "monthly_income_inr": monthly_income_inr,
+        "vehicle_make_model": vehicle_make_model,
+        "loan_amount_inr": loan_amount_inr,
+        "tenure_months": tenure_months,
+        "existing_car_owner": existing_car_owner,
+        "notes": notes,
+        "phone": phone,
+        "email": email,
+    }
+    session.add_topic("loan_enquiry")
+    if product_interest:
+        session.add_request(f"loan:{product_interest}")
+    lead_id = create_or_update_loan_lead(session, details)
+    missing = [
+        name
+        for name, value in {
+            "product_interest": details["product_interest"] or None,
+            "city": details["city"] or None,
+            "employment_type": details["employment_type"] or None,
+            "monthly_income_inr": details["monthly_income_inr"] or None,
+            "vehicle_make_model": details["vehicle_make_model"] or None,
+            "loan_amount_inr": details["loan_amount_inr"] or None,
+            "tenure_months": details["tenure_months"] or None,
+        }.items()
+        if not value
+    ]
+    return _ok(
+        {
+            "ok": True,
+            "loan_lead_id": lead_id,
+            "saved": {k: v for k, v in details.items() if v},
+            "still_needed": missing,
+            "message": "Ask the next missing field only. Do not promise approval.",
+        }
+    )
+
+
 CUSTOMER_TOOLS = [
     verify_customer_kyc,
     get_my_account_summary,
     get_my_recent_transactions,
     send_my_document_email,
     search_company_knowledge,
+    log_guest_interest,
+    submit_loan_enquiry,
 ]
+
+ACCOUNT_TOOL_NAMES = {
+    "verify_customer_kyc",
+    "get_my_account_summary",
+    "get_my_recent_transactions",
+    "send_my_document_email",
+}
+
+GUEST_TOOL_NAMES = {
+    "log_guest_interest",
+    "submit_loan_enquiry",
+    "search_company_knowledge",
+}

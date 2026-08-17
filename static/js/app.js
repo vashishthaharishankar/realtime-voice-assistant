@@ -7,10 +7,17 @@ const AGENT_LABEL = "Support";
 const loginView = document.getElementById("loginView");
 const appView = document.getElementById("appView");
 const loginForm = document.getElementById("loginForm");
+const guestForm = document.getElementById("guestForm");
 const loginError = document.getElementById("loginError");
+const guestError = document.getElementById("guestError");
 const loginBtn = document.getElementById("loginBtn");
+const guestBtn = document.getElementById("guestBtn");
+const showGuestBtn = document.getElementById("showGuestBtn");
+const showLoginBtn = document.getElementById("showLoginBtn");
+const authFlip = document.getElementById("authFlip");
 const logoutBtn = document.getElementById("logoutBtn");
 const userNameEl = document.getElementById("userName");
+const guestBadge = document.getElementById("guestBadge");
 const startBtn = document.getElementById("startBtn");
 const stopBtn = document.getElementById("stopBtn");
 const muteBtn = document.getElementById("muteBtn");
@@ -66,6 +73,7 @@ function clearSession() {
 function showLogin() {
   loginView.classList.remove("hidden");
   appView.classList.add("hidden");
+  authFlip?.classList.remove("is-guest");
 }
 
 function showApp() {
@@ -74,6 +82,7 @@ function showApp() {
   const customer = getCustomer();
   if (customer) {
     userNameEl.textContent = customer.full_name || customer.customer_id;
+    guestBadge.classList.toggle("hidden", !customer.is_guest);
   }
   if (!vizRaf) drawVoiceViz();
 }
@@ -190,9 +199,14 @@ function sendOpeningGreeting() {
   greetingSent = true;
   const customer = getCustomer();
   const name = customer?.full_name?.split(" ")[0] || "";
-  const greet = name
-    ? `Say exactly this once, then stop and wait: Hello ${name}, this is Kotak customer support. How can I help you today?`
-    : "Say exactly this once, then stop and wait: Hello, this is Kotak customer support. How can I help you today?";
+  const guest = Boolean(customer?.is_guest);
+  const greet = guest
+    ? name
+      ? `Say exactly this once, then stop and wait: Hello ${name}, this is Kotak customer support. I can help with KMPL products and policies. How can I help you today?`
+      : "Say exactly this once, then stop and wait: Hello, this is Kotak customer support. I can help with KMPL products and policies. How can I help you today?"
+    : name
+      ? `Say exactly this once, then stop and wait: Hello ${name}, this is Kotak customer support. How can I help you today?`
+      : "Say exactly this once, then stop and wait: Hello, this is Kotak customer support. How can I help you today?";
   dc.send(
     JSON.stringify({
       type: "response.create",
@@ -393,7 +407,10 @@ async function startCall() {
   stopBtn.disabled = false;
   muteBtn.disabled = false;
   setStatus("Live", "live");
-  hint.textContent = "You are live. Describe your issue and we will help you from here.";
+  const guest = Boolean(getCustomer()?.is_guest);
+  hint.textContent = guest
+    ? "You are live as a guest. Ask about KMPL products, policies, or applying for a loan. Account balances are not available."
+    : "You are live. Describe your issue and we will help you from here.";
 }
 
 async function endCallOnServer() {
@@ -473,6 +490,53 @@ loginForm.addEventListener("submit", async (e) => {
     loginError.classList.remove("hidden");
   } finally {
     loginBtn.disabled = false;
+  }
+});
+
+showGuestBtn.addEventListener("click", () => {
+  loginError.classList.add("hidden");
+  guestError.classList.add("hidden");
+  authFlip.classList.add("is-guest");
+  setTimeout(() => document.getElementById("guestName")?.focus(), 350);
+});
+
+showLoginBtn.addEventListener("click", () => {
+  loginError.classList.add("hidden");
+  guestError.classList.add("hidden");
+  authFlip.classList.remove("is-guest");
+  setTimeout(() => document.getElementById("loginInput")?.focus(), 350);
+});
+
+guestForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  guestError.classList.add("hidden");
+  guestBtn.disabled = true;
+
+  const full_name = document.getElementById("guestName").value.trim();
+  const phone = document.getElementById("guestPhone").value.trim();
+  const email = document.getElementById("guestEmail").value.trim();
+
+  try {
+    const res = await fetch("/api/guest", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ full_name, phone, email }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.detail || "Could not continue as guest");
+    }
+    setSession(data.session_token, data.customer);
+    transcriptEl.innerHTML = "";
+    conversationLog.length = 0;
+    hint.textContent =
+      "Guest mode: ask about KMPL products and policies. Account information is not available.";
+    showApp();
+  } catch (err) {
+    guestError.textContent = err.message || "Guest login failed";
+    guestError.classList.remove("hidden");
+  } finally {
+    guestBtn.disabled = false;
   }
 });
 

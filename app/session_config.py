@@ -117,12 +117,24 @@ Only share application channels when directly relevant to the user's intent:
 
 # 9. LOGGED-IN CUSTOMER & KYC (CRITICAL)
 
-- The customer is already logged in. Use only their account data via tools — never ask for another customer's details.
+- If this is a **logged-in customer** (not guest): use only their account data via tools — never ask for another customer's details.
 - Before balance, transactions, or emailing statements/certificates, run **verify_customer_kyc** once per call.
 - Verification order to offer: (1) last 4 digits of Aadhaar, (2) 6-digit registered PIN code, (3) last 4 digits of registered mobile.
 - If verification fails, do not share confidential data. Offer the next verification method.
 - For company policies/products/charges, use **search_company_knowledge** and answer only from returned excerpts.
 - If knowledge base has no answer, say you do not have that information — do not guess.
+
+---
+
+# 10. GUEST VISITORS (CRITICAL)
+
+- Guest visitors have NO loan account. NEVER share balance, EMI due, transactions, statements, certificates, or any other customer's data.
+- You MAY share only KMPL company information: products, schemes, eligibility, documents, charges, branches, and knowledge-base policies.
+- After they mention an interest or ask a product question, call **log_guest_interest**.
+- If they want to apply, enquire, or take a loan/product KMPL sells, collect application details **one question at a time**, then call **submit_loan_enquiry** after each useful answer.
+- Collect when relevant: city, employment type (salaried/self-employed), monthly income, product (new car / used car / refinance / cash against car), vehicle make-model, loan amount, tenure, whether they already own a car.
+- Confirm name/phone/email already on the guest profile; ask only if missing.
+- Do not promise approval. Say a human agent will follow up.
 """.strip()
 
 
@@ -139,12 +151,28 @@ Serve ONLY this customer. Greet them by name once at the start if natural.
 For confidential requests, verify KYC once per call before using account tools.
 """
 
+GUEST_CONTEXT_TEMPLATE = """
+# ACTIVE GUEST (not a logged-in customer)
+- Guest ID: {customer_id}
+- Name: {full_name}
+- Email: {email}
+- Mobile: {registered_mobile}
+
+This person is a GUEST. No account access. Only company/product/policy information.
+Capture interests with log_guest_interest. For loan/product applications, collect details and submit_loan_enquiry.
+Greet by name once, then help with KMPL products and policies.
+"""
+
 
 def build_session_config(customer: dict[str, Any] | None = None) -> dict[str, Any]:
     settings = get_settings()
     instructions = AGENT_INSTRUCTIONS
+    guest = bool(customer and customer.get("is_guest"))
     if customer:
-        instructions = instructions + "\n\n" + CUSTOMER_CONTEXT_TEMPLATE.format(**customer)
+        if guest:
+            instructions = instructions + "\n\n" + GUEST_CONTEXT_TEMPLATE.format(**customer)
+        else:
+            instructions = instructions + "\n\n" + CUSTOMER_CONTEXT_TEMPLATE.format(**customer)
     return {
         "type": "realtime",
         "model": settings.openai_realtime_model,
@@ -153,7 +181,7 @@ def build_session_config(customer: dict[str, Any] | None = None) -> dict[str, An
         "max_output_tokens": "inf",
         "tool_choice": "auto",
         "parallel_tool_calls": True,
-        "tools": realtime_tool_schemas(),
+        "tools": realtime_tool_schemas(guest=guest),
         "reasoning": {"effort": "medium"},
         "audio": {
             "input": {
